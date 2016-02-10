@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Страны</title>
+</head>
+<style>
+	body {
+		font-style: Arial, Tahoma;
+	}
+	#livesearch	{
+		height: 20px;
+		width: 200px;
+		position: absolute;
+		top: 200px;
+		left: 50%;
+		margin-left: -100px;
+	}
+	#tool-tip {
+		width: 200px;
+		position: absolute;
+		top: 210px;
+		left: 50%;
+		margin-left: -100px;
+
+		list-style: none;
+		border: 1px solid #ccc;
+		border-top: none;
+		padding:  0 1px 0 1px;
+		box-shadow: 0 2px 2px rgba(0,0,0,.3);
+		z-index: 9999;
+	}
+	#tool-tip li {
+		display: none;
+	}
+	#tool-tip li.shown {
+		display: block;
+		background: #FFFFFF;
+	}
+	#tool-tip li.shown:hover {
+		background: #EEEEEE;
+	}
+
+	#lls{
+		position: absolute;
+		top: 180px;
+		left: 50%;
+		margin-left: -100px;
+	}
+	#chose_btn {
+		position: absolute;
+		top: 230px;
+		left: 50%;
+		margin-left: -100px;
+	}
+</style>
+<?php echo Phalcon\Tag::javascriptInclude("http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", false) ?>
+<script type="text/javascript">
+
+	function livesearch_c(input) {		
+		if (input.value == "") { 
+			clear_list();
+			return;
+		}
+		$.post("SearchCountry/search", {value: input.value}, function(data) {
+			var data_array = data.split("!!!");
+			
+			for (var i = 0; i < data_array.length; ++i) {
+				if (data_array[i] != "") {
+					var base = data_array[i].substring(0, input.value.length);
+					var tail = data_array[i].substring(input.value.length);
+					$("#tool-tip li").eq(i).addClass("shown").html(base + "<b>" + tail + "</b>");
+				}
+					
+
+			}
+			clear_list(i);
+		});
+	}
+
+	function clear_list(index) {
+		if (index === undefined) {
+			$("#tool-tip li").each(function(){
+				$(this).removeClass("shown");
+			});	
+		} else {
+			$("#tool-tip li").each(function(j){
+				if (j >= index - 1)
+				$(this).removeClass("shown");
+			});	
+		}			
+	}
+
+	function handler(e) {
+		if (e.target.tagName == "B") {
+			$("#livesearch").val(e.target.parentNode.innerText);
+		} else {
+			$("#livesearch").val(e.target.innerText);
+		}
+		
+		clear_list();
+	}
+</script>
+<body>
+	<?php echo $this->tag->form(array("info/show", "method" => "post")); ?>
+
+	<label id="lls">Введите название страны</label>
+	<?php echo $this->tag->textField(array("livesearch", "oninput" => "livesearch_c(this)", "AUTOCOMPLETE" => "OFF")) ?>
+	<ul id="tool-tip" onclick="handler(event)">
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+		<li></li>
+	</ul>
+
+	<p>
+		<?php echo $this->tag->tagHtml('button', array('Выбор', 'id' => 'chose_btn'), false, true, false) ?>
+		Выбор
+		<?php echo $this->tag->tagHtmlClose('button', true) ?>
+	</p>
+
+	
+</body>
+</html>
